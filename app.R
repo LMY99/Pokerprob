@@ -10,12 +10,23 @@
 # Playing Cards assets come from https://github.com/hayeah/playing-cards-assets/tree/master/svg-cards
 source("texas holdem.R")
 library(shiny)
-
+# TODO: Add bluffing coefficient
+# TODO: Add pre-flop charts in extra tabs
 card_list <- sapply(1:52,function(x) sprintf("%s_of_%s",ranks_face[x],suits_face[x]))
 card_num <- setNames(1:52, card_list)
 hand_type_abbr <- c("NoPair", "Pair", "2Pair",
   "3o1K", "Str", "Flush",
   "Full", "4o1K", "StrFlush")
+loading_messages <- c(
+  "Running Monte Carlo simulations...",
+  "Repeatedly playing poker at background...",
+  "Shuffling and dealing virtual cards...",
+  "Calculating probability of winning...",
+  "Calling the bluff of another computer...",
+  "Distributing poker chips around CPUs...",
+  "Looking up cheat sheets for poker hand types...",
+  "Wondering if flush beats straights or the other way around..."
+)
 
 ui <- fluidPage(
 
@@ -25,6 +36,8 @@ ui <- fluidPage(
     sidebarLayout(
         sidebarPanel(
             actionButton("push","Simulate"),
+            numericInput("B", "Simulation Size",
+                         10000L, min=1, step=1),
             selectInput('visible_cards',"Stage",
                       c('Pre-flop'=0,'Flop'=3,'Turn'=4,'River'=5)),
             selectInput('p1_visible','Player1 visible?',
@@ -262,17 +275,15 @@ server <- function(input, output) {
     length(unique(card_sets()))==15
   )
   
+  rv <- reactiveValues(j=1)
+  
   result <- eventReactive(c(input$push),
     {
       if(input$push>0&cards_is_unique()){
-        prompt <- sample(c(
-          "Running Monte Carlo simulations...",
-          "Repeatedly playing poker at background...",
-          "Shuffling and dealing virtual cards...",
-          "Calculating probability of winning..."
-        ), 1)
+        prompt <- loading_messages[rv$j]
+        rv$j <- sample(seq_along(loading_messages)[-rv$j],1)
         showModal(modalDialog(prompt, footer=NULL))
-        game <- simulate_game2(cards=card_sets_masked())
+        game <- simulate_game2(cards=card_sets_masked(), MC_size=input$B)
         removeModal()
         game
       }   
