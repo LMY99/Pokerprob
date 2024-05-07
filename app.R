@@ -272,7 +272,8 @@ server <- function(input, output) {
     x
   })
   cards_is_unique <- reactive(
-    length(unique(card_sets()))==15
+    length(unique(card_sets_masked()[!is.na(card_sets_masked())]))==
+      sum(!is.na(card_sets_masked()))
   )
   
   rv <- reactiveValues(j=1)
