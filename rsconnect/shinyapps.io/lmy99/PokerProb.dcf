@@ -1,0 +1,12 @@
+name: PokerProb
+title: PokerProb
+username: lmy99
+account: lmy99
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 11955325
+bundleId: 8587763
+url: https://lmy99.shinyapps.io/PokerProb/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE
