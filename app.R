@@ -25,7 +25,8 @@ loading_messages <- c(
   "Calling the bluff of another computer...",
   "Distributing poker chips around CPUs...",
   "Looking up cheat sheets for poker hand types...",
-  "Wondering if flush beats straights or the other way around..."
+  "Wondering if flush beats straight or the other way around...",
+  "Borrowing extra card decks from the Blackjack program..."
 )
 
 ui <- fluidPage(
@@ -37,7 +38,7 @@ ui <- fluidPage(
         sidebarPanel(
             actionButton("push","Simulate"),
             numericInput("B", "Simulation Size",
-                         10000L, min=1, step=1),
+                         2500L, min=1, step=1),
             selectInput('visible_cards',"Stage",
                       c('Pre-flop'=0,'Flop'=3,'Turn'=4,'River'=5)),
             selectInput('p1_visible','Player1 visible?',
@@ -87,6 +88,9 @@ ui <- fluidPage(
         ),
         
         mainPanel(
+          
+          htmlOutput("asset_credit"),
+          
           fluidRow(
             column(1,imageOutput("imgC1"),offset=0,style='padding:0px;'),
             column(1,imageOutput("imgC2"),offset=0,style='padding:0px;'),
@@ -120,6 +124,7 @@ ui <- fluidPage(
              column(1,imageOutput("img10"),offset=0,style='padding:0px;margin-top:-20em;'),
              column(8,htmlOutput('P5'),offset=0,style='padding:0px;margin-top:-20em;')
            ),
+           
            width=10
         )
     )
@@ -276,14 +281,14 @@ server <- function(input, output) {
       sum(!is.na(card_sets_masked()))
   )
   
-  rv <- reactiveValues(j=1)
+  rv <- reactiveValues(j=sample(length(loading_messages),1))
   
   result <- eventReactive(c(input$push),
     {
       if(input$push>0&cards_is_unique()){
         prompt <- loading_messages[rv$j]
         rv$j <- sample(seq_along(loading_messages)[-rv$j],1)
-        showModal(modalDialog(prompt, footer=NULL))
+        showModal(modalDialog(prompt, footer=NULL, style='font-size:175%'))
         game <- simulate_game2(cards=card_sets_masked(), MC_size=input$B)
         removeModal()
         game
@@ -312,6 +317,9 @@ server <- function(input, output) {
     "<p>Player 5:</p> <p>Winning Probability: %.2f%%</p> <p>Hand type probability: %s</p>",
     100*result()$prob_win[5],
     paste(sprintf("%s=%.2f%%",hand_type_abbr,100*result()$prob_hands[5,]),collapse='||')))
+  output$asset_credit <- renderText(
+    "<p> Playing Cards images come from https://github.com/hayeah/playing-cards-assets/ </p>"
+    )
 }
 
 # Run the application 
