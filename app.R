@@ -7,11 +7,15 @@
 #    https://shiny.posit.co/
 #
 
-# Playing Cards assets come from https://github.com/hayeah/playing-cards-assets/tree/master/svg-cards
+
 source("texas holdem.R")
+load('Starting strategy.rda')
 library(shiny)
+library(reshape)
+library(ggplot2)
+library(dplyr)
+library(DT)
 # TODO: Add bluffing coefficient
-# TODO: Add pre-flop charts in extra tabs
 card_list <- sapply(1:52,function(x) sprintf("%s_of_%s",ranks_face[x],suits_face[x]))
 card_num <- setNames(1:52, card_list)
 hand_type_abbr <- c("NoPair", "Pair", "2Pair",
@@ -30,7 +34,8 @@ loading_messages <- c(
 )
 
 ui <- fluidPage(
-
+    tabsetPanel(
+    tabPanel('Simulator', fluid=TRUE,
     # Application title
     titlePanel("Poker Probability Simulator"),
 
@@ -128,9 +133,49 @@ ui <- fluidPage(
            width=10
         )
     )
+), tabPanel("Pre-flop Probability Heatmap", fluid=TRUE,
+            plotOutput("Same_suit"),
+            plotOutput("Diff_suit")
+  
+),
+   tabPanel("Pre-flop Probability Data", fluid=TRUE,
+            p("Pre-flop probability when private cards are of same suit:"),
+            DTOutput("Same_suit_df"),
+            p("Pre-flop probability when private cards are of different suit:"),
+            DTOutput("Diff_suit_df")
+         
+)
+)
 )
 
 server <- function(input, output) {
+  
+  output$Same_suit_df <- renderDT(datatable(same_suit, 
+                                            options=list(paging=TRUE,pageLength=20)))
+  output$Diff_suit_df <- renderDT(datatable(diff_suit, 
+                                            options=list(paging=TRUE,pageLength=20)))
+  
+  output$Same_suit <- renderPlot(suppressWarnings(
+    (
+      ggplot(melt(same_suit*100,c('Card1','Card2')) 
+             %>% rename(WinPercentage=value),aes(Card1,Card2)) +
+        geom_tile(aes(fill=WinPercentage)) +
+        scale_fill_gradientn(limits=c(0,60),
+                             colours=c("red", "yellow", 'green',"blue")) +
+        ggtitle("Pre-flop winning probability when private cards are from same suit")
+    )
+  ))
+  output$Diff_suit <- renderPlot(suppressWarnings(
+    (
+      ggplot(melt(diff_suit*100,c('Card1','Card2')) 
+             %>% rename(WinPercentage=value),aes(Card1,Card2)) +
+        geom_tile(aes(fill=WinPercentage)) +
+        scale_fill_gradientn(limits=c(0,60),
+                             colours=c("red", "yellow", 'green',"blue")) +
+        ggtitle("Pre-flop winning probability when private cards are from diff suit")
+    )
+  ))
+  
   
   output$Common_label <- renderText("")
   
