@@ -15,7 +15,7 @@ library(reshape)
 library(ggplot2)
 library(dplyr)
 library(DT)
-# TODO: Add bluffing coefficient
+
 card_list <- sapply(1:52,function(x) sprintf("%s_of_%s",ranks_face[x],suits_face[x]))
 card_num <- setNames(1:52, card_list)
 hand_type_abbr <- c("NoPair", "Pair", "2Pair",
@@ -48,14 +48,24 @@ ui <- fluidPage(
                       c('Pre-flop'=0,'Flop'=3,'Turn'=4,'River'=5)),
             selectInput('p1_visible','Player1 visible?',
                         c('Yes','No')),
+            numericInput("p1_bluff", "Player1 Bluff",
+                         1, min=1, step=0.1),
             selectInput('p2_visible','Player2 visible?',
                         c('Yes','No')),
+            numericInput("p2_bluff", "Player2 Bluff",
+                         1, min=1, step=0.1),
             selectInput('p3_visible','Player3 visible?',
                         c('Yes','No')),
+            numericInput("p3_bluff", "Player3 Bluff",
+                         1, min=1, step=0.1),
             selectInput('p4_visible','Player4 visible?',
                         c('Yes','No')),
+            numericInput("p4_bluff", "Player4 Bluff",
+                         1, min=1, step=0.1),
             selectInput('p5_visible','Player5 visible?',
                         c('Yes','No')),
+            numericInput("p5_bluff", "Player5 Bluff",
+                         1, min=1, step=0.1),
             
             selectInput('common_card1', 'Common Card1', card_list,
                         selected=card_list[1]),
@@ -343,25 +353,30 @@ server <- function(input, output) {
 
   
   output$P1 <- renderText(sprintf(
-    "<p>Player 1:</p> <p>Winning Probability: %.2f%%</p> <p>Hand type probability: %s</p>",
+    "Player 1:Winning Probability: %5.2f%%<br /> Hand type probability: <br />%s<br /> Bluffed probability: <br />%s<br />",
     100*result()$prob_win[1],
-    paste(sprintf("%s=%.2f%%",hand_type_abbr, 100*result()$prob_hands[1,]),collapse='||')))
+    paste(sprintf("%s=%5.2f%%",hand_type_abbr, 100*result()$prob_hands[1,]),collapse='||'),
+    paste(sprintf("%s=%5.2f%%",hand_type_abbr, 100*bluff(result()$prob_hands[1,],as.numeric(input$p1_bluff))),collapse='||')))
   output$P2 <- renderText(sprintf(
-    "<p>Player 2:</p> <p>Winning Probability: %.2f%%</p> <p>Hand type probability: %s</p>",
+    "Player 2:Winning Probability: %5.2f%%<br /> Hand type probability: <br />%s<br /> Bluffed probability: <br />%s<br />",
     100*result()$prob_win[2],
-    paste(sprintf("%s=%.2f%%",hand_type_abbr,100*result()$prob_hands[2,]),collapse='||')))
+    paste(sprintf("%s=%5.2f%%",hand_type_abbr,100*result()$prob_hands[2,]),collapse='||'),
+    paste(sprintf("%s=%5.2f%%",hand_type_abbr, 100*bluff(result()$prob_hands[2,],as.numeric(input$p2_bluff))),collapse='||')))
   output$P3 <- renderText(sprintf(
-    "<p>Player 3:</p> <p>Winning Probability: %.2f%%</p> <p>Hand type probability: %s</p>",
+    "Player 3:Winning Probability: %5.2f%%<br /> Hand type probability: <br />%s<br /> Bluffed probability: <br />%s<br />",
     100*result()$prob_win[3],
-    paste(sprintf("%s=%.2f%%",hand_type_abbr,100*result()$prob_hands[3,]),collapse='||')))
+    paste(sprintf("%s=%5.2f%%",hand_type_abbr,100*result()$prob_hands[3,]),collapse='||'),
+    paste(sprintf("%s=%5.2f%%",hand_type_abbr, 100*bluff(result()$prob_hands[3,],as.numeric(input$p3_bluff))),collapse='||')))
   output$P4 <- renderText(sprintf(
-    "<p>Player 4:</p> <p>Winning Probability: %.2f%%</p> <p>Hand type probability: %s</p>",
+    "Player 4:Winning Probability: %5.2f%%<br /> Hand type probability: <br />%s<br /> Bluffed probability: <br />%s<br />",
     100*result()$prob_win[4],
-    paste(sprintf("%s=%.2f%%",hand_type_abbr,100*result()$prob_hands[4,]),collapse='||')))
+    paste(sprintf("%s=%5.2f%%",hand_type_abbr,100*result()$prob_hands[4,]),collapse='||'),
+    paste(sprintf("%s=%5.2f%%",hand_type_abbr, 100*bluff(result()$prob_hands[4,],as.numeric(input$p4_bluff))),collapse='||')))
   output$P5 <- renderText(sprintf(
-    "<p>Player 5:</p> <p>Winning Probability: %.2f%%</p> <p>Hand type probability: %s</p>",
+    "Player 5:Winning Probability: %5.2f%%<br /> Hand type probability: <br />%s<br /> Bluffed probability: <br />%s<br />",
     100*result()$prob_win[5],
-    paste(sprintf("%s=%.2f%%",hand_type_abbr,100*result()$prob_hands[5,]),collapse='||')))
+    paste(sprintf("%s=%5.2f%%",hand_type_abbr,100*result()$prob_hands[5,]),collapse='||'),
+    paste(sprintf("%s=%5.2f%%",hand_type_abbr, 100*bluff(result()$prob_hands[5,],as.numeric(input$p5_bluff))),collapse='||')))
   output$asset_credit <- renderText(
     "<p> Playing Cards images come from https://github.com/hayeah/playing-cards-assets/ </p>"
     )

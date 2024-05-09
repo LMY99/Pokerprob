@@ -286,3 +286,7 @@ simulate_game2 <- function(N=5, # Number of players
   return(list(prob_hands=prob_hands,prob_win=prob_win))
 }
 
+bluff <- function(p, alpha=1){
+  cdf <- c(0,cumsum(p))
+  return(diff(cdf^alpha))
+}
