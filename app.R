@@ -172,7 +172,9 @@ server <- function(input, output) {
         geom_tile(aes(fill=WinPercentage)) +
         scale_fill_gradientn(limits=c(0,60),
                              colours=c("red", "yellow", 'green',"blue")) +
-        ggtitle("Pre-flop winning probability when private cards are from same suit")
+        ggtitle("Pre-flop winning probability when private cards are from same suit") +
+        theme(axis.text=element_text(size=18),
+              axis.title=element_text(size=18,face="bold"))
     )
   ))
   output$Diff_suit <- renderPlot(suppressWarnings(
@@ -182,7 +184,9 @@ server <- function(input, output) {
         geom_tile(aes(fill=WinPercentage)) +
         scale_fill_gradientn(limits=c(0,60),
                              colours=c("red", "yellow", 'green',"blue")) +
-        ggtitle("Pre-flop winning probability when private cards are from diff suit")
+        ggtitle("Pre-flop winning probability when private cards are from diff suit") +
+        theme(axis.text=element_text(size=18),
+              axis.title=element_text(size=18,face="bold"))
     )
   ))
   
