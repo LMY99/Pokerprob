@@ -42,28 +42,31 @@ ui <- fluidPage(
     sidebarLayout(
         sidebarPanel(
             actionButton("push","Simulate"),
+            actionButton("deal","Shuffle"),
+            actionButton("HideAllP","Hide All Players"),
+            actionButton("ShowAllP","Show All Players"),
             numericInput("B", "Simulation Size",
                          2500L, min=1, step=1),
             selectInput('visible_cards',"Stage",
                       c('Pre-flop'=0,'Flop'=3,'Turn'=4,'River'=5)),
             selectInput('p1_visible','Player1 visible?',
-                        c('Yes','No')),
+                        c('Yes','No'), selected = 'No'),
             numericInput("p1_bluff", "Player1 Bluff",
                          1, min=1, step=0.1),
             selectInput('p2_visible','Player2 visible?',
-                        c('Yes','No')),
+                        c('Yes','No'), selected = 'No'),
             numericInput("p2_bluff", "Player2 Bluff",
                          1, min=1, step=0.1),
             selectInput('p3_visible','Player3 visible?',
-                        c('Yes','No')),
+                        c('Yes','No'), selected = 'No'),
             numericInput("p3_bluff", "Player3 Bluff",
                          1, min=1, step=0.1),
             selectInput('p4_visible','Player4 visible?',
-                        c('Yes','No')),
+                        c('Yes','No'), selected = 'No'),
             numericInput("p4_bluff", "Player4 Bluff",
                          1, min=1, step=0.1),
             selectInput('p5_visible','Player5 visible?',
-                        c('Yes','No')),
+                        c('Yes','No'), selected = 'No'),
             numericInput("p5_bluff", "Player5 Bluff",
                          1, min=1, step=0.1),
             
@@ -149,16 +152,18 @@ ui <- fluidPage(
   
 ),
    tabPanel("Pre-flop Probability Data", fluid=TRUE,
-            p("Pre-flop probability when private cards are of same suit:"),
+            p("Pre-flop probability of winning a 5P game when private cards are of same suit:"),
             DTOutput("Same_suit_df"),
-            p("Pre-flop probability when private cards are of different suit:"),
+            p("Pre-flop probability of winning a 5P game when private cards are of different suit:"),
             DTOutput("Diff_suit_df")
          
 )
 )
 )
 
-server <- function(input, output) {
+server <- function(input, output, session) {
+  
+  set.seed(Sys.time())
   
   output$Same_suit_df <- renderDT(datatable(same_suit, 
                                             options=list(paging=TRUE,pageLength=20)))
@@ -172,7 +177,7 @@ server <- function(input, output) {
         geom_tile(aes(fill=WinPercentage)) +
         scale_fill_gradientn(limits=c(0,60),
                              colours=c("red", "yellow", 'green',"blue")) +
-        ggtitle("Pre-flop winning probability when private cards are from same suit") +
+        ggtitle("Pre-flop probability of winning a 5P game when private cards are from same suit") +
         theme(axis.text=element_text(size=18),
               axis.title=element_text(size=18,face="bold"))
     )
@@ -184,16 +189,50 @@ server <- function(input, output) {
         geom_tile(aes(fill=WinPercentage)) +
         scale_fill_gradientn(limits=c(0,60),
                              colours=c("red", "yellow", 'green',"blue")) +
-        ggtitle("Pre-flop winning probability when private cards are from diff suit") +
+        ggtitle("Pre-flop probability of winning a 5P game when private cards are from diff suit") +
         theme(axis.text=element_text(size=18),
               axis.title=element_text(size=18,face="bold"))
     )
   ))
   
+  observeEvent((input$deal),{
+      shuffled_set <- sample(52, 15, replace = F)
+      updateSelectInput(session = session, inputId = 'common_card1', choices = card_list, selected = card_list[shuffled_set[1]])
+      updateSelectInput(session = session, inputId = 'common_card2', choices = card_list, selected = card_list[shuffled_set[2]])
+      updateSelectInput(session = session, inputId = 'common_card3', choices = card_list, selected = card_list[shuffled_set[3]])
+      updateSelectInput(session = session, inputId = 'common_card4', choices = card_list, selected = card_list[shuffled_set[4]])
+      updateSelectInput(session = session, inputId = 'common_card5', choices = card_list, selected = card_list[shuffled_set[5]])
+      
+      updateSelectInput(session = session, inputId = 'P1_Card1', choices = card_list, selected = card_list[shuffled_set[6]])
+      updateSelectInput(session = session, inputId = 'P1_Card2', choices = card_list, selected = card_list[shuffled_set[7]])
+      updateSelectInput(session = session, inputId = 'P2_Card1', choices = card_list, selected = card_list[shuffled_set[8]])
+      updateSelectInput(session = session, inputId = 'P2_Card2', choices = card_list, selected = card_list[shuffled_set[9]])
+      updateSelectInput(session = session, inputId = 'P3_Card1', choices = card_list, selected = card_list[shuffled_set[10]])
+      updateSelectInput(session = session, inputId = 'P3_Card2', choices = card_list, selected = card_list[shuffled_set[11]])
+      updateSelectInput(session = session, inputId = 'P4_Card1', choices = card_list, selected = card_list[shuffled_set[12]])
+      updateSelectInput(session = session, inputId = 'P4_Card2', choices = card_list, selected = card_list[shuffled_set[13]])
+      updateSelectInput(session = session, inputId = 'P5_Card1', choices = card_list, selected = card_list[shuffled_set[14]])
+      updateSelectInput(session = session, inputId = 'P5_Card2', choices = card_list, selected = card_list[shuffled_set[15]])
+  })
+  observeEvent((input$HideAllP),{
+    updateSelectInput(session = session, inputId = 'p1_visible', choices = c('Yes', 'No'), selected = 'No')
+    updateSelectInput(session = session, inputId = 'p2_visible', choices = c('Yes', 'No'), selected = 'No')
+    updateSelectInput(session = session, inputId = 'p3_visible', choices = c('Yes', 'No'), selected = 'No')
+    updateSelectInput(session = session, inputId = 'p4_visible', choices = c('Yes', 'No'), selected = 'No')
+    updateSelectInput(session = session, inputId = 'p5_visible', choices = c('Yes', 'No'), selected = 'No')
+  })
+  observeEvent((input$ShowAllP),{
+    updateSelectInput(session = session, inputId = 'p1_visible', choices = c('Yes', 'No'), selected = 'Yes')
+    updateSelectInput(session = session, inputId = 'p2_visible', choices = c('Yes', 'No'), selected = 'Yes')
+    updateSelectInput(session = session, inputId = 'p3_visible', choices = c('Yes', 'No'), selected = 'Yes')
+    updateSelectInput(session = session, inputId = 'p4_visible', choices = c('Yes', 'No'), selected = 'Yes')
+    updateSelectInput(session = session, inputId = 'p5_visible', choices = c('Yes', 'No'), selected = 'Yes')
+  })
   
   output$Common_label <- renderText("")
   
   output$imgC1<-renderImage({
+    req(input$common_card1)
     list(src = ifelse(as.numeric(input$visible_cards)>=1,
                       sprintf("png/%s.png",input$common_card1),
                       "png/back.png"
@@ -203,6 +242,7 @@ server <- function(input, output) {
          alt = "This is alternate text")
   }, deleteFile = FALSE)
   output$imgC2<-renderImage({
+    req(input$common_card2)
     list(src = ifelse(as.numeric(input$visible_cards)>=2,
                       sprintf("png/%s.png",input$common_card2),
                       "png/back.png"
@@ -212,6 +252,7 @@ server <- function(input, output) {
          alt = "This is alternate text")
   }, deleteFile = FALSE)
   output$imgC3<-renderImage({
+    req(input$common_card3)
     list(src = ifelse(as.numeric(input$visible_cards)>=3,
                       sprintf("png/%s.png",input$common_card3),
                       "png/back.png"
@@ -221,6 +262,7 @@ server <- function(input, output) {
          alt = "This is alternate text")
   }, deleteFile = FALSE)
   output$imgC4<-renderImage({
+    req(input$common_card4)
     list(src = ifelse(as.numeric(input$visible_cards)>=4,
                       sprintf("png/%s.png",input$common_card4),
                       "png/back.png"
@@ -230,6 +272,7 @@ server <- function(input, output) {
          alt = "This is alternate text")
   }, deleteFile = FALSE)
   output$imgC5<-renderImage({
+    req(input$common_card5)
     list(src = ifelse(as.numeric(input$visible_cards)>=5,
                       sprintf("png/%s.png",input$common_card5),
                       "png/back.png"
@@ -239,62 +282,71 @@ server <- function(input, output) {
          alt = "This is alternate text")
   }, deleteFile = FALSE)
   
-  
   output$img1<-renderImage({
+    req(input$P1_Card1)
     list(src = ifelse(input$p1_visible=='Yes',sprintf("png/%s.png",input$P1_Card1),'png/back.png'),
          width="56px",height="81px",
          contentType = 'image/png',
          alt = "This is alternate text")
   }, deleteFile = FALSE)
   output$img2<-renderImage({
+    req(input$P1_Card2)
     list(src = ifelse(input$p1_visible=='Yes',sprintf("png/%s.png",input$P1_Card2),'png/back.png'),
          width="56px",height="81px",
          contentType = 'image/png',
          alt = "This is alternate text")
   }, deleteFile = FALSE)
   output$img3<-renderImage({
+    req(input$P2_Card1)
     list(src = ifelse(input$p2_visible=='Yes',sprintf("png/%s.png",input$P2_Card1),'png/back.png'),
          width="56px",height="81px",
          contentType = 'image/png',
          alt = "This is alternate text")
   }, deleteFile = FALSE)
   output$img4<-renderImage({
+    req(input$P2_Card2)
     list(src = ifelse(input$p2_visible=='Yes',sprintf("png/%s.png",input$P2_Card2),'png/back.png'),
          width="56px",height="81px",
          contentType = 'image/png',
          alt = "This is alternate text")
   }, deleteFile = FALSE)
   output$img5<-renderImage({
+    req(input$P3_Card1)
     list(src = ifelse(input$p3_visible=='Yes',sprintf("png/%s.png",input$P3_Card1),'png/back.png'),
          width="56px",height="81px",
          contentType = 'image/png',
          alt = "This is alternate text")
   }, deleteFile = FALSE)
   output$img6<-renderImage({
+    req(input$P3_Card2)
     list(src = ifelse(input$p3_visible=='Yes',sprintf("png/%s.png",input$P3_Card2),'png/back.png'),
          width="56px",height="81px",
          contentType = 'image/png',
          alt = "This is alternate text")
   }, deleteFile = FALSE)
   output$img7<-renderImage({
+    req(input$P4_Card1)
     list(src = ifelse(input$p4_visible=='Yes',sprintf("png/%s.png",input$P4_Card1),'png/back.png'),
          width="56px",height="81px",
          contentType = 'image/png',
          alt = "This is alternate text")
   }, deleteFile = FALSE)
   output$img8<-renderImage({
+    req(input$P4_Card2)
     list(src = ifelse(input$p4_visible=='Yes',sprintf("png/%s.png",input$P4_Card2),'png/back.png'),
          width="56px",height="81px",
          contentType = 'image/png',
          alt = "This is alternate text")
   }, deleteFile = FALSE)
   output$img9<-renderImage({
+    req(input$P5_Card1)
     list(src = ifelse(input$p5_visible=='Yes',sprintf("png/%s.png",input$P5_Card1),'png/back.png'),
          width="56px",height="81px",
          contentType = 'image/png',
          alt = "This is alternate text")
   }, deleteFile = FALSE)
   output$img10<-renderImage({
+    req(input$P5_Card2)
     list(src = ifelse(input$p5_visible=='Yes',sprintf("png/%s.png",input$P5_Card2),'png/back.png'),
          width="56px",height="81px",
          contentType = 'image/png',
@@ -354,7 +406,6 @@ server <- function(input, output) {
       }   
     }             
   )
-
   
   output$P1 <- renderText(sprintf(
     "Player 1:Winning Probability: %5.2f%%<br /> Hand type probability: <br />%s<br /> Bluffed probability: <br />%s<br />",
